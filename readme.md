@@ -1,7 +1,8 @@
 # 🐾 Scooby-Doo Tetris 🎮
 
 > Solve the mystery of the falling blocks with Scooby-Doo and friends!  
-Play it here 👉 [**Play Now on GitHub Pages**](https://username.github.io/scooby-doo-tetris/)
+Play it here 👉 [**Play Now on GitHub Pages**](https://truelearnerarjun.github.io/scooby_doo_tetris-/
+)
 
 ---
 
