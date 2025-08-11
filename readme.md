@@ -6,8 +6,9 @@ Play it here 👉 [**Play Now on GitHub Pages**](https://username.github.io/scoo
 ---
 
 ## 📸 Preview
-![Game Screenshot](assets/game_screenshots/game_1.png)
+
 ![Game Screenshot](assets/game_screenshots/ss_2.png)
+![Game Screenshot](assets/game_screenshots/game_1.png)
 
 ---
 
