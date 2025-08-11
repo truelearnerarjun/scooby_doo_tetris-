@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Scooby Doo Tetris — Modern</title>
+    <!-- Replace the existing PIXI filters script with this one -->
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        body {
+            background: #051016;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+
+
+            overflow: hidden;
+            
+        }
+
+                .menu-container {
+            text-align: center;
+            padding: 1rem;
+            background: linear-gradient(180deg, #06202d, #0b3c49);
+            
+
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .menu-button {
+            display: block;
+            width: 150px;
+            padding: 1rem;
+            margin: 1rem auto;
+            font-size: 1.2rem;
+            background: #3AA6A2;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .menu-button:hover {
+            transform: scale(1.05);
+            background: #2d8480;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .mascot-space {
+            width: 300px;
+            height: 300px;
+            margin: 2rem auto;
+            background: transparent;
+            border-radius: 50%;
+        }
+
+        .how-to-play {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .controls-list {
+            text-align: left;
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .controls-list li {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 0.5rem;
+        }
+        
+    </style>
+</head>
+<body>
+    <!-- Main Menu -->
+    <div id="main-menu" class="menu-container">
+        <div id="gif-container" class="mascot-space">
+            <img src="/assets/entry_gif/Dance Dancing GIF by Scooby-Doo.gif" alt="Scooby-Doo GIF" class="gif active">
+            <img src="/assets/entry_gif/Knife Cut GIF by Scooby-Doo.gif" alt="Scooby-Doo GIF" class="gif">
+            <img src="/assets/entry_gif/Oh No Wow GIF by Scooby-Doo.gif" alt="Scooby-Doo GIF" class="gif">
+            <img src="../assets/entry_gif/Scooby Doo Drool GIF.gif" alt="Scooby-Doo GIF" class="gif">
+        </div>
+        <div class="title-container">
+            <h1><span class="s">Scooby</span>-Doo Tetris</h1>
+            <img src="../assets/images/scooby_tag.png" alt="Scooby Tag" class="scooby-tag">
+        </div>
+        
+        
+        <button class="menu-button" id="play-btn">Play</button>
+
+        <button class="menu-button" onclick="showHowToPlay()">How to Play</button>
+        <button class="menu-button" onclick="leaveGame()">Leave Game</button>
+    </div>
+
+    <!-- Mode Select Modal -->
+    <div id="mode-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <h3>Select Mode</h3>
+            <p>Choose your desired difficulty.</p>
+            <div class="modal-actions">
+                <button class="menu-button" id="mode-easy">Easy</button>
+                <button class="menu-button" id="mode-medium">Medium</button>
+                <button class="menu-button secondary" id="mode-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- How to Play Screen -->
+    <div id="how-to-play" class="menu-container hidden">
+        <h2>How to Play</h2>
+        <div class="how-to-play">
+            <ul class="controls-list">
+                <li>← → : Move piece left/right</li>
+                <li>↓ : Move piece down</li>
+                <li>Q : Rotate piece</li>
+                <li>Space : Drop piece instantly</li>
+                <li>P : Pause game</li>
+            </ul>
+        </div>
+        <button class="menu-button" onclick="showMainMenu()">Back to Menu</button>
+    </div>
+
+    <!-- Game Container -->
+    <div id="app" class="hidden">
+        <header>
+            <div class="title-container">
+                <h1><span class="s">Scooby</span>-Doo Tetris</h1>
+                <img src="../assets/images/scooby_tag.png" alt="Scooby Tag" class="scooby-tag">
+            </div>
+            <div class="controls">
+                
+                <button id="back-to-menu">Back to Menu</button>
+                <button id="pause">Pause</button>
+                <button id="restart">Restart</button>
+                <button id="mute"><i class="fas fa-volume-up"></i></button>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1">
+                
+            </div>
+        </header>
+
+        <main>
+            <!-- Overlay for Pause/Game Over -->
+            <div id="overlay" class="hidden">
+                <div class="overlay-inner">
+                    <h2 id="overlay-title">Paused</h2>
+                    <p id="overlay-sub">Like, take a break man!</p>
+                    <button id="overlay-resume">Resume</button>
+                    <button id="overlay-restart" class="hidden">Restart</button>
+                </div>
+            </div>
+            <section class="left-panel">
+                <canvas id="tetris" width="300" height="600"></canvas>
+            </section>
+
+            <aside class="right-panel">
+                <div class="score-container">
+                    <div class="score-box">
+                        <div class="label">Score</div>
+                        <div id="score" class="value">0</div>
+                    </div>
+                    <div class="score-box">
+                        <div class="label">High Score</div>
+                        <div id="high-score" class="value">0</div>
+                    </div>
+                </div>
+
+                <div class="next-box">
+                    <div class="label">Next</div>
+                    <canvas id="next" width="150" height="150"></canvas>
+                </div>
+
+                <div class="mascot-wrap">
+                    <img src="../scooby_tetris_modern/assets/gifs/scooby doo lol GIF (1).gif" alt="Scooby-Doo GIF" id="default-mascot-gif" class="mascot-gif">
+                    <img src="../scooby_tetris_modern/assets/gifs/daphnee.gif" alt="Scooby-Doo GIF" class="mascot-gif random-gif hidden">
+                    <img src="../scooby_tetris_modern/assets/gifs/welma.gif" alt="Scooby-Doo GIF" class="mascot-gif random-gif hidden">
+                    <img src="../scooby_tetris_modern/assets/gifs/fred.gif" alt="Scooby-Doo GIF" class="mascot-gif random-gif hidden">
+                    <img src="../scooby_tetris_modern/assets/gifs/shaggy.gif" alt="Scooby-Doo GIF" class="mascot-gif random-gif hidden">
+                </div>
+
+                <div class="credits">Theme: Mystery Machine • Made with ❤️</div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Audio -->
+    <audio id="music" preload="auto" loop src="../assets/sounds/scooby_doo_theme.mp3"></audio>
+    <audio id="unpause" src="../assets/sounds/167126__crisstanza__unpause.mp3"></audio>
+    <audio id="pause-sound" src="../assets/sounds/167127__crisstanza__pause.mp3"></audio>
+    
+    <!-- Replace the existing line-clear audio element with this -->
+    <audio id="line-clear" src="../assets/sounds/Voicy_Jeeepers...mp3" volume="1.0"></audio>
+
+
+    <script src="highscore.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
