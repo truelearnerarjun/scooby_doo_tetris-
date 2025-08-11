@@ -31,4 +31,4 @@ Play it here 👉 [**Play Now on GitHub Pages**](https://username.github.io/scoo
 ---
 
 ## 💡 Credits
-Made by [YourName] 🧩
+Made by [Arjun Tandon](https://www.linkedin.com/in/arjun-tandon-93b775229/) 🧩
