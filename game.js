@@ -796,10 +796,10 @@ function backtomenu() {
 // ---- Main Menu Music Helpers (User adds their own URLs) ----
 // Array of menu track URLs; user can populate via setMainMenuTracks/addMainMenuTrack
 const MENU_TRACKS = [
-  '../assets/sounds/ThemeSongs/Scooby Doo - Hex Girls - Earth Wind and Fire.mp3',
-  '../assets/sounds/ThemeSongs/Scooby Doo - Hex Girls - Im a Hex Girl.mp3',
-  '../assets/sounds/ThemeSongs/Scooby Doo and The Witchs Ghost - Terror Time - Scooby-Doo on Zombie Island.mp3',
-  '../assets/sounds/ThemeSongs/Scooby Doo and The Witchs Ghost - The Ghost Is Here.mp3',
+  '../assets/sounds/ThemeSongs/Scooby_Doo_Hex_Girls_Earth_Wind_and_Fire.mp3',
+  '../assets/sounds/ThemeSongs/Scooby_Doo_Hex_Girls_Im_a_Hex_Girl.mp3',
+  '../assets/sounds/ThemeSongs/Scooby_Doo_and_The_Witchs_Ghost_Terror_Time_Scooby_Doo_on_Zombie_Island.mp3',
+  '../assets/sounds/ThemeSongs/Scooby_Doo_and_The_Witchs_Ghost_The_Ghost_Is_Here.mp3',
   '../assets/sounds/scooby_doo_theme.mp3'
 ];
 
