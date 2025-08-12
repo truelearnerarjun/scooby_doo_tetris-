@@ -392,7 +392,7 @@ function updateScore(){ document.getElementById('score').innerText = score; }
 
 function drawNext() {
     // Clear next piece canvas
-    nextCtx.fillStyle = '#0A141A';
+    nextCtx.fillStyle = '#081623';
     nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
     
     if (nextPiece.matrix) {
@@ -615,7 +615,7 @@ document.addEventListener('keydown', e=>{
 
 document.getElementById('pause').addEventListener('click', ()=> togglePause());
 document.getElementById('overlay-resume').addEventListener('click', ()=> togglePause(false));
-document.getElementById('restart').addEventListener('click', ()=>{
+document.getElementById('restart').addEventListener('click', ()=> {
   arena.forEach(row=>row.fill(0));
   score = 0; updateScore(); playerReset(); hideOverlay();
 });
@@ -994,3 +994,52 @@ document.addEventListener('DOMContentLoaded', () => {
 window.pause = () => {
   isPaused = !isPaused;
 };
+
+// --- Mobile Touch Controls ---
+
+const gameCanvas = document.getElementById('tetris');
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+
+const SWIPE_THRESHOLD = 30; // Minimum pixels to be considered a swipe
+const TAP_THRESHOLD = 10;   // Maximum pixels to be considered a tap
+
+gameCanvas.addEventListener('touchstart', function(event) {
+    event.preventDefault();
+    touchStartX = event.changedTouches[0].screenX;
+    touchStartY = event.changedTouches[0].screenY;
+}, { passive: false });
+
+gameCanvas.addEventListener('touchend', function(event) {
+    event.preventDefault();
+    if (isPaused || !gameStarted) return;
+
+    touchEndX = event.changedTouches[0].screenX;
+    touchEndY = event.changedTouches[0].screenY;
+
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+
+    // Check for tap first
+    if (Math.abs(deltaX) < TAP_THRESHOLD && Math.abs(deltaY) < TAP_THRESHOLD) {
+        playerRotate();
+        return;
+    }
+
+    // Check for swipe
+    if (Math.abs(deltaX) > Math.abs(deltaY)) { // Horizontal swipe
+        if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
+            if (deltaX > 0) {
+                playerMove(1); // Right
+            } else {
+                playerMove(-1); // Left
+            }
+        }
+    } else { // Vertical swipe
+        if (deltaY > SWIPE_THRESHOLD) {
+            playerDrop(); // Down
+        }
+    }
+}, { passive: false });
