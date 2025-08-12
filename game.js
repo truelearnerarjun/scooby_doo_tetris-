@@ -71,11 +71,6 @@ function lightenColor(color, percent) {
     ).toString(16).slice(1);
 }
 
-// Increase block size for bigger layout
-
-// const COLS = 10, ROWS = 20;
-
-
 
 let isPaused = false;
 let isMuted = false;
@@ -85,10 +80,14 @@ let lastTime = 0;
 let dropCounter = 0;
 let dropInterval = 1000;
 let score = 0;
-// When hovering the volume slider, suppress arrow controls
 let hoveringVolumeSlider = false;
-// When hovering the speed slider, suppress arrow controls
 let hoveringSpeedSlider = false;
+
+// State for continuous touch movement
+let continuousMoveDir = 0; // -1 for left, 1 for right
+let moveTimer = 0;
+const MOVE_INTERVAL = 100; // ms between each move
+
 
 // Speed control (levels 1-10)
 let speedLevel = 1;
@@ -268,6 +267,24 @@ function playerDrop(){
     updateScore();
   }
   dropCounter = 0;
+}
+
+function playerHardDrop() {
+    const app = document.getElementById('app');
+    if (app) {
+      app.classList.add('hard-drop-feedback');
+      setTimeout(() => app.classList.remove('hard-drop-feedback'), 220);
+    }
+    while(!collide()) player.pos.y++;
+    player.pos.y--;
+    merge();
+    const lines = arenaSweep();
+    if (lines > 0) {
+        playLineClearSound();
+        showRandomMascotGif();
+    }
+    playerReset();
+    updateScore();
 }
 
 function playerMove(dir){
@@ -571,6 +588,15 @@ function update(time=0) {
     if(dropCounter > dropInterval) {
       playerDrop();
     }
+
+    if (continuousMoveDir !== 0) {
+        moveTimer += delta;
+        if (moveTimer > MOVE_INTERVAL) {
+            playerMove(continuousMoveDir);
+            moveTimer = 0;
+        }
+    }
+
     draw();
   }
   requestAnimationFrame(update);
@@ -594,22 +620,7 @@ document.addEventListener('keydown', e=>{
   else if(e.key === 'q' || e.key === 'Q') playerRotate();
   else if(e.key === 'p' || e.key === 'P') togglePause();
   else if(e.key === ' ') {
-    // Hard drop visual feedback
-    const app = document.getElementById('app');
-    if (app) {
-      app.classList.add('hard-drop-feedback');
-      setTimeout(() => app.classList.remove('hard-drop-feedback'), 220);
-    }
-    while(!collide()) player.pos.y++;
-    player.pos.y--;
-    merge();
-    const lines = arenaSweep();
-    if (lines > 0) {
-        playLineClearSound();
-        showRandomMascotGif();
-    }
-    playerReset();
-    updateScore();
+    playerHardDrop();
   }
 });
 
@@ -995,51 +1006,82 @@ window.pause = () => {
   isPaused = !isPaused;
 };
 
-// --- Mobile Touch Controls ---
+// --- Advanced Mobile Touch Controls ---
 
 const gameCanvas = document.getElementById('tetris');
 let touchStartX = 0;
 let touchStartY = 0;
-let touchEndX = 0;
-let touchEndY = 0;
+let touchStartTime = 0;
 
-const SWIPE_THRESHOLD = 30; // Minimum pixels to be considered a swipe
-const TAP_THRESHOLD = 10;   // Maximum pixels to be considered a tap
+// Thresholds
+const SWIPE_THRESHOLD = 50; // A bit larger to avoid accidental swipes
+const TAP_THRESHOLD = 20;   // Max movement for a tap
+const TAP_TIME_THRESHOLD = 200; // ms, max time for a tap
+
+// Reset continuous movement state
+function stopContinuousMove() {
+    continuousMoveDir = 0;
+    moveTimer = 0;
+}
 
 gameCanvas.addEventListener('touchstart', function(event) {
     event.preventDefault();
+    if (isPaused || !gameStarted) return;
+
     touchStartX = event.changedTouches[0].screenX;
     touchStartY = event.changedTouches[0].screenY;
+    touchStartTime = new Date().getTime();
+    stopContinuousMove();
+}, { passive: false });
+
+gameCanvas.addEventListener('touchmove', function(event) {
+    event.preventDefault();
+    if (isPaused || !gameStarted) return;
+
+    const touchCurrentX = event.changedTouches[0].screenX;
+    const deltaX = touchCurrentX - touchStartX;
+
+    // Only handle horizontal movement here
+    if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
+        const newDir = Math.sign(deltaX);
+        if (newDir !== continuousMoveDir) {
+            continuousMoveDir = newDir;
+            // Move immediately on direction change
+            playerMove(continuousMoveDir);
+            moveTimer = 0;
+        }
+    } else {
+        // If user moves back into the deadzone, stop moving
+        stopContinuousMove();
+    }
 }, { passive: false });
 
 gameCanvas.addEventListener('touchend', function(event) {
     event.preventDefault();
     if (isPaused || !gameStarted) return;
 
-    touchEndX = event.changedTouches[0].screenX;
-    touchEndY = event.changedTouches[0].screenY;
+    const touchEndX = event.changedTouches[0].screenX;
+    const touchEndY = event.changedTouches[0].screenY;
+    const touchEndTime = new Date().getTime();
 
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
+    const deltaTime = touchEndTime - touchStartTime;
 
-    // Check for tap first
-    if (Math.abs(deltaX) < TAP_THRESHOLD && Math.abs(deltaY) < TAP_THRESHOLD) {
+    // Stop any continuous movement
+    stopContinuousMove();
+
+    // 1. Check for Tap
+    if (deltaTime < TAP_TIME_THRESHOLD && Math.abs(deltaX) < TAP_THRESHOLD && Math.abs(deltaY) < TAP_THRESHOLD) {
         playerRotate();
         return;
     }
 
-    // Check for swipe
-    if (Math.abs(deltaX) > Math.abs(deltaY)) { // Horizontal swipe
-        if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
-            if (deltaX > 0) {
-                playerMove(1); // Right
-            } else {
-                playerMove(-1); // Left
-            }
-        }
-    } else { // Vertical swipe
-        if (deltaY > SWIPE_THRESHOLD) {
-            playerDrop(); // Down
-        }
+    // 2. Check for Downward Swipe (Hard Drop)
+    // Ensure it's more vertical than horizontal and a clear downward motion
+    if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY > SWIPE_THRESHOLD) {
+        playerHardDrop();
+        return;
     }
+
 }, { passive: false });
