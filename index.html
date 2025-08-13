@@ -33,6 +33,7 @@
 
             border-radius: 1rem;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            
         }
 
         .menu-button {
@@ -170,20 +171,22 @@
             </section>
 
             <aside class="right-panel">
-                <div class="score-container">
-                    <div class="score-box">
-                        <div class="label">Score</div>
-                        <div id="score" class="value">0</div>
+                <div class="score-and-next">
+                    <div class="score-container">
+                        <div class="score-box">
+                            <div class="label">Score</div>
+                            <div id="score" class="value">0</div>
+                        </div>
+                        <div class="score-box">
+                            <div class="label">High Score</div>
+                            <div id="high-score" class="value">0</div>
+                        </div>
                     </div>
-                    <div class="score-box">
-                        <div class="label">High Score</div>
-                        <div id="high-score" class="value">0</div>
-                    </div>
-                </div>
 
-                <div class="next-box">
-                    <div class="label">Next</div>
-                    <canvas id="next" width="150" height="150"></canvas>
+                    <div class="next-box">
+                        <div class="label">Next</div>
+                        <canvas id="next" ></canvas>
+                    </div>
                 </div>
 
                 <div class="mascot-wrap">

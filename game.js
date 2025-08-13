@@ -1,7 +1,7 @@
 // Modern Scooby-Doo themed Tetris
 
 
-const BLOCK_SIZE = 30;
+let BLOCK_SIZE = 30;
 const COLS = 10, ROWS = 20;
 
 // Colors for pieces
@@ -22,19 +22,39 @@ const ctx = canvas.getContext('2d');
 const nextCanvas = document.getElementById('next');
 const nextCtx = nextCanvas.getContext('2d');
 
-// Set canvas sizes
-canvas.width = COLS * BLOCK_SIZE;
-canvas.height = ROWS * BLOCK_SIZE;
-nextCanvas.width = 6 * BLOCK_SIZE;
-nextCanvas.height = 5 * BLOCK_SIZE;
+function setCanvasSize() {
+    const mainContainer = document.querySelector('.left-panel');
+    const nextContainer = document.querySelector('.next-box');
+
+    if (mainContainer) {
+        const containerWidth = mainContainer.offsetWidth;
+        const newBlockSize = containerWidth / COLS;
+        BLOCK_SIZE = newBlockSize;
+
+        canvas.width = containerWidth;
+        canvas.height = newBlockSize * ROWS;
+    }
+
+    if (nextContainer) {
+        const nextContainerWidth = nextContainer.offsetWidth;
+        nextCanvas.width = nextContainerWidth;
+        nextCanvas.height = nextContainerWidth; // Make it square
+    }
+}
 
 // Drawing functions
 function drawBlock(ctx, x, y, color) {
+    const isNextCanvas = ctx === nextCtx;
+    const currentBlockSize = isNextCanvas ? nextCanvas.width / 6 : BLOCK_SIZE;
+    const xPos = isNextCanvas ? x * currentBlockSize : x * currentBlockSize;
+    const yPos = isNextCanvas ? y * currentBlockSize : y * currentBlockSize;
+
+
     const gradient = ctx.createLinearGradient(
-        x * BLOCK_SIZE, 
-        y * BLOCK_SIZE, 
-        (x + 1) * BLOCK_SIZE, 
-        (y + 1) * BLOCK_SIZE
+        xPos,
+        yPos,
+        xPos + currentBlockSize,
+        yPos + currentBlockSize
     );
     gradient.addColorStop(0, color);
     gradient.addColorStop(1, lightenColor(color, 30));
@@ -44,14 +64,14 @@ function drawBlock(ctx, x, y, color) {
     ctx.lineWidth = 1;
     
     const padding = 1;
-    const radius = 4;
+    const radius = currentBlockSize / 4;
     
     ctx.beginPath();
     ctx.roundRect(
-        x * BLOCK_SIZE + padding,
-        y * BLOCK_SIZE + padding,
-        BLOCK_SIZE - padding * 2,
-        BLOCK_SIZE - padding * 2,
+        xPos + padding,
+        yPos + padding,
+        currentBlockSize - padding * 2,
+        currentBlockSize - padding * 2,
         radius
     );
     ctx.fill();
@@ -425,6 +445,8 @@ function drawNext() {
 
 fillPieceBag();
 let nextPiece = { matrix: getNextPiece() };
+playerReset();
+draw();
 
 // Add these at the top with your other state variables
 let gameStarted = false;
@@ -998,8 +1020,13 @@ function ensureEffectsStyle() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Ensure animation CSS is present
-  ensureEffectsStyle();
+    setCanvasSize();
+    // Ensure animation CSS is present
+    ensureEffectsStyle();
+});
+
+window.addEventListener('resize', () => {
+    setCanvasSize();
 });
 
 window.pause = () => {
