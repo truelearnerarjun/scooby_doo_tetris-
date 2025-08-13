@@ -1,3 +1,6 @@
+document.addEventListener('DOMContentLoaded', draw);
+window.addEventListener('resize', draw);
+
 // Modern Scooby-Doo themed Tetris
 
 
@@ -445,8 +448,6 @@ function drawNext() {
 
 fillPieceBag();
 let nextPiece = { matrix: getNextPiece() };
-playerReset();
-draw();
 
 // Add these at the top with your other state variables
 let gameStarted = false;
@@ -557,6 +558,64 @@ function showMainMenu() {
     playerReset();
 }
 
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    setCanvasSize();
+    ensureEffectsStyle();
+
+    const playBtn = document.getElementById('play-btn');
+    const modeModal = document.getElementById('mode-modal');
+    const modeEasy = document.getElementById('mode-easy');
+    const modeMedium = document.getElementById('mode-medium');
+    const modeCancel = document.getElementById('mode-cancel');
+    const modalBackdrop = modeModal ? modeModal.querySelector('.modal-backdrop') : null;
+
+    const openModeModal = () => { if (modeModal) modeModal.classList.remove('hidden'); };
+    const closeModeModal = () => { if (modeModal) modeModal.classList.add('hidden'); };
+
+    if (playBtn && modeModal) {
+        playBtn.addEventListener('click', openModeModal);
+    }
+    if (modeEasy) {
+        modeEasy.addEventListener('click', () => { closeModeModal(); startEasyGame(); });
+    }
+    if (modeMedium) {
+        modeMedium.addEventListener('click', () => { closeModeModal(); startMediumGame(); });
+    }
+    if (modeCancel) {
+        modeCancel.addEventListener('click', closeModeModal);
+    }
+    if (modalBackdrop) {
+        modalBackdrop.addEventListener('click', closeModeModal);
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modeModal && !modeModal.classList.contains('hidden')) {
+            closeModeModal();
+        }
+    });
+
+    document.getElementById('overlay-restart').addEventListener('click', ()=> {
+        hideOverlay();
+        startGame();
+    });
+
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+            }
+        });
+    });
+});
+
 // Modify startGame function
 function startGame() {
     document.getElementById('main-menu').classList.add('hidden');
@@ -582,7 +641,9 @@ function startGame() {
     nextSpeedMilestone = 500;
     // Ensure dropInterval reflects current speed level
     updateDropInterval();
+    setCanvasSize();
     playerReset();
+    draw();
     updateScore();
     getHighScore();
 }
@@ -654,142 +715,7 @@ document.getElementById('restart').addEventListener('click', ()=> {
 });
 document.getElementById('mute').addEventListener('click', ()=> toggleMute());
 
-document.addEventListener('DOMContentLoaded', () => {
-    const backButton = document.getElementById('back-to-menu');
-    if (backButton) {
-        backButton.addEventListener('click', () => {
-            backtomenu();
-        });
-    }
-    
-    const music = document.getElementById('music');
-    const volumeSlider = document.getElementById('volume-slider');
-    const speedSlider = document.getElementById('speed-slider');
-    const speedValue = document.getElementById('speed-value');
-    
-    // Set initial volume (0.2 = 20% volume)
-    music.volume = 0.2;
-    volumeSlider.value = 0.2;
-    
-    // Initialize speed slider
-    if (speedSlider) {
-        // Clamp initial level within bounds
-        speedLevel = Math.min(SPEED_MAX, Math.max(SPEED_MIN, parseInt(speedSlider.value || '1', 10)));
-        updateDropInterval();
-        if (speedValue) speedValue.textContent = String(speedLevel);
 
-        // Prevent keyboard interaction and blur after pointer use (like volume slider)
-        speedSlider.setAttribute('tabindex', '-1');
-        const blockKeys = (e) => {
-            const blocked = [
-                'ArrowLeft','ArrowRight','ArrowUp','ArrowDown',
-                'Home','End','PageUp','PageDown',' ','Enter'
-            ];
-            if (blocked.includes(e.key)) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        };
-        speedSlider.addEventListener('keydown', blockKeys);
-        speedSlider.addEventListener('keyup', blockKeys);
-        const blurAfter = () => { setTimeout(() => speedSlider.blur(), 0); };
-        speedSlider.addEventListener('pointerup', blurAfter);
-        speedSlider.addEventListener('change', blurAfter);
-        const enter = () => { hoveringSpeedSlider = true; };
-        const leave = () => { hoveringSpeedSlider = false; };
-        speedSlider.addEventListener('pointerenter', enter);
-        speedSlider.addEventListener('mouseenter', enter);
-        speedSlider.addEventListener('pointerleave', leave);
-        speedSlider.addEventListener('mouseleave', leave);
-
-        speedSlider.addEventListener('input', (e) => {
-            const val = parseInt(e.target.value, 10);
-            if (!Number.isNaN(val)) {
-                speedLevel = Math.min(SPEED_MAX, Math.max(SPEED_MIN, val));
-                if (speedValue) speedValue.textContent = String(speedLevel);
-                updateDropInterval();
-                // Reset counter so change takes effect immediately
-                dropCounter = 0;
-            }
-        });
-    }
-    
-    // Make volume slider respond only to pointer/touch, not keyboard
-    if (volumeSlider) {
-        // Remove from tab order (can't focus via Tab)
-        volumeSlider.setAttribute('tabindex', '-1');
-
-        const blockKeys = (e) => {
-            const blocked = [
-                'ArrowLeft','ArrowRight','ArrowUp','ArrowDown',
-                'Home','End','PageUp','PageDown',' ','Enter'
-            ];
-            if (blocked.includes(e.key)) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        };
-        volumeSlider.addEventListener('keydown', blockKeys);
-        volumeSlider.addEventListener('keyup', blockKeys);
-
-        // After pointer interaction, remove focus so further arrow keys don't affect it
-        const blurAfter = () => { setTimeout(() => volumeSlider.blur(), 0); };
-        volumeSlider.addEventListener('pointerup', blurAfter);
-        volumeSlider.addEventListener('change', blurAfter);
-
-        // Track hover to temporarily disable arrow keys for game controls
-        const enter = () => { hoveringVolumeSlider = true; };
-        const leave = () => { hoveringVolumeSlider = false; };
-        volumeSlider.addEventListener('pointerenter', enter);
-        volumeSlider.addEventListener('mouseenter', enter);
-        volumeSlider.addEventListener('pointerleave', leave);
-        volumeSlider.addEventListener('mouseleave', leave);
-    }
-    const playBtn = document.getElementById('play-btn');
-    const modeModal = document.getElementById('mode-modal');
-    const modeEasy = document.getElementById('mode-easy');
-    const modeMedium = document.getElementById('mode-medium');
-    const modeCancel = document.getElementById('mode-cancel');
-    const modalBackdrop = modeModal ? modeModal.querySelector('.modal-backdrop') : null;
-
-    const openModeModal = () => { if (modeModal) modeModal.classList.remove('hidden'); };
-    const closeModeModal = () => { if (modeModal) modeModal.classList.add('hidden'); };
-
-    if (playBtn && modeModal) {
-        playBtn.addEventListener('click', openModeModal);
-    }
-    if (modeEasy) {
-        modeEasy.addEventListener('click', () => { closeModeModal(); startEasyGame(); });
-    }
-    if (modeMedium) {
-        modeMedium.addEventListener('click', () => { closeModeModal(); startMediumGame(); });
-    }
-    if (modeCancel) {
-        modeCancel.addEventListener('click', closeModeModal);
-    }
-    if (modalBackdrop) {
-        modalBackdrop.addEventListener('click', closeModeModal);
-    }
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modeModal && !modeModal.classList.contains('hidden')) {
-            closeModeModal();
-        }
-    });
-
-    document.getElementById('overlay-restart').addEventListener('click', ()=> {
-        hideOverlay();
-        startGame();
-    });
-
-    const buttons = document.querySelectorAll('button');
-    buttons.forEach(button => {
-        button.addEventListener('keydown', (e) => {
-            if (e.key === ' ') {
-                e.preventDefault();
-            }
-        });
-    });
-});
 
 // Removed stray call with no argument; user should pass a src or use setMainMenuTracks([...])
 // addMainMenuTrack();
@@ -1019,11 +945,7 @@ function ensureEffectsStyle() {
   document.head.appendChild(style);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    setCanvasSize();
-    // Ensure animation CSS is present
-    ensureEffectsStyle();
-});
+
 
 window.addEventListener('resize', () => {
     setCanvasSize();
